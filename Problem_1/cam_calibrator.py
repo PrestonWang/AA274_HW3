@@ -140,7 +140,7 @@ class CameraCalibrator:
         ########## Code starts here ##########
         A = np.zeros((3,3))
         def getV(H,i,j):
-            v = np.array([H[i,0]*H[j,0],H[i,0]*H[j,1]+H[i,1]*H[j,0],H[i,1]*H[j,1],H[i,2]*H[j,0]+H[i,0]*H[j,2],H[i,1]*H[j,2]+H[i,2]*H[j,2],H[i,2]*H[j,2]])
+            v = np.array([H[0,i]*H[0,j],H[0,i]*H[1,j]+H[1,i]*H[0,j],H[1,i]*H[1,i],H[2,i]*H[0,j]+H[0,i]*H[2,j],H[1,i]*H[2,j]+H[2,i]*H[2,j],H[2,i]*H[2,j]])
             return v
 
         num_mats = len(H)
