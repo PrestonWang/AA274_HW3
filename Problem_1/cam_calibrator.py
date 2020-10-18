@@ -82,9 +82,10 @@ class CameraCalibrator:
                     yg.append(i*self.d_square)
             Xg.append(np.array(xg))
             Yg.append(np.array(yg))
-            corner_coordinates = (Xg,Yg)
+
+        corner_coordinates = (Xg,Yg)
         ########## Code ends here ##########
-        return Xg, Yg
+        return corner_coordinates
 
     def estimateHomography(self, u_meas, v_meas, X, Y):    # Zhang Appendix A
         '''
