@@ -199,7 +199,12 @@ class CameraCalibrator:
 
         '''
         ########## Code starts here ##########
+        Rt = np.hstack((R, t))
 
+        M_tilda = np.hstack((X, Y, Z, np.full_like(X, 1)))
+        m_tilda = np.matmul(Rt, M_tilda)
+        x = m_tilda[:, 0]
+        y = m_tilda[:, 1]
         ########## Code ends here ##########
         return x, y
 
@@ -214,7 +219,12 @@ class CameraCalibrator:
             u, v: the coordinates in the ideal pixel image plane
         '''
         ########## Code starts here ##########
+        Rt = np.hstack((R,t))
 
+        M_tilda = np.hstack((X,Y,Z,np.full_like(X,1)))
+        m_tilda = np.matmul(A,np.matmul(Rt, M_tilda))
+        u = m_tilda[:,0]
+        v = m_tilda[:,1]
         ########## Code ends here ##########
         return u, v
 
