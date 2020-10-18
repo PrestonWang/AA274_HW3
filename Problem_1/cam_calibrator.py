@@ -90,7 +90,23 @@ class CameraCalibrator:
         HINT: np.stack and/or np.hstack may come in handy here.
         '''
         ########## Code starts here ##########
-
+        # size of matrix L should be 2*n x 9.
+        n = len(X)
+        # first generate L
+        L = np.zeros((2*n,9))
+        for i in range(n):
+            x = X[i] # getting current x value
+            y = Y[i] # current y value
+            u = u_meas[i]
+            v = v_meas[i]
+            L[2*i,:] = np.array([x,y,1,0,0,0,-u*x, -u*y, -u])
+            L[2*i+1,:] = np.array([0,0,0,x,y,1,-v*x, -v*y, -v])
+        # now perform SVD to get the solution X: sol_X
+            # be careful U_matrix and u_meas are different, V_matrix and v_meas are also different
+            (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
+            # the last column of V will correspond to X since the eigenvalues are sorted in descending order
+        sol_X = V_matrix[:,-1]
+        H = np.vstack((sol_X[0:3], sol_X[3:6], sol_X[6:9]))
         ########## Code ends here ##########
         return H
 
