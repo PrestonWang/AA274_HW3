@@ -71,16 +71,20 @@ class CameraCalibrator:
         HINT: it does not matter where your frame it, as long as you are consistent!
         '''
         ########## Code starts here ##########
-        xg = []
-        yg = []
-        for i in range(self.n_corners_x):
-            for j in range(self.n_corners_y):
-                xg.append(i*self.d_square)
-                yg.append(j*self.d_square)
-                
-        corner_coordinates = (np.array(xg),np.array(yg))
+        Xg = []
+        Yg = []
+        for h in range(self.n_chessboards):
+            xg = []
+            yg = []
+            for i in range(self.n_corners_x):
+                for j in range(self.n_corners_y):
+                    xg.append(j*self.d_square)
+                    yg.append(i*self.d_square)
+            Xg.append(np.array(xg))
+            Yg.append(np.array(yg))
+            corner_coordinates = (Xg,Yg)
         ########## Code ends here ##########
-        return corner_coordinates
+        return Xg, Yg
 
     def estimateHomography(self, u_meas, v_meas, X, Y):    # Zhang Appendix A
         '''
@@ -130,7 +134,34 @@ class CameraCalibrator:
         HINT: What is the size of V?
         '''
         ########## Code starts here ##########
+        A = np.zeros((3,3))
+        def getV(H,i,j):
+            v = np.array([H[i,0]*H[j,0],H[i,0]*H[j,1]+H[i,1]*H[j,0],H[i,1]*H[j,1],H[i,2]*H[j,0]+H[i,0]*H[j,2],H[i,1]*H[j,2]+H[i,2]*H[j,2],H[i,2]*H[j,2]])
+            return v
 
+        num_mats = len(H)
+        V = np.zeros((2*num_mats,6))
+        for i in range(num_mats):
+            V[2*i,:] = getV(H[i],1,2)
+            V[2*i,:] = (getV(H[i],1,1)-getV(H[i],2,2))
+            
+        V_sq = np.matmul(np.transpose(V),V)
+        eigval, eigvec = np.linalg.eig(V_sq)
+        min_idx = np.argmin(eigval)
+        b = eigvec[min_idx]
+        v0 = (b[1]*b[3]-b[0]*b[5])/(b[0]*b[2]-b[1]**2)
+        lmda = b[5]-(b[3]**2+v0*(b[1]*b[3]-b[0]*b[4]))/b[0]
+        print(lmda)
+        alpha = np.sqrt(lmda/b[0])
+        beta = np.sqrt((lmda*b[0])/(b[0]*b[2]-b[1]**2))
+        gam =  -1*(b[1]*alpha**2*beta)/lmda
+        u0 = gam*v0/beta-(b[3]*alpha**2)/lmda
+        A[0,0] = alpha
+        A[0,1] = gam
+        A[0,2] = u0
+        A[1,1] = beta
+        A[1,2] = v0
+        A[2,2] = 1
         ########## Code ends here ##########
         return A
 
