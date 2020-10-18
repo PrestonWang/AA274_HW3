@@ -145,13 +145,10 @@ class CameraCalibrator:
             V[2*i,:] = getV(H[i],1,2)
             V[2*i,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
-        V_sq = np.matmul(np.transpose(V),V)
-        eigval, eigvec = np.linalg.eig(V_sq)
-        min_idx = np.argmin(eigval)
-        b = eigvec[min_idx]
+        (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
+        b = v1[:,-1]
         v0 = (b[1]*b[3]-b[0]*b[5])/(b[0]*b[2]-b[1]**2)
         lmda = b[5]-(b[3]**2+v0*(b[1]*b[3]-b[0]*b[4]))/b[0]
-        print(lmda)
         alpha = np.sqrt(lmda/b[0])
         beta = np.sqrt((lmda*b[0])/(b[0]*b[2]-b[1]**2))
         gam =  -1*(b[1]*alpha**2*beta)/lmda
