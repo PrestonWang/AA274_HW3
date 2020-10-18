@@ -75,16 +75,16 @@ class CameraCalibrator:
         yg = []
         Xg = []
         Yg = []
-        for h in range(self.n_chessboards)
+        for h in range(self.n_chessboards):
             for i in range(self.n_corners_x):
                 for j in range(self.n_corners_y):
-                    xg.append(i*self.d_square)
-                    yg.append(j*self.d_square)
+                    xg.append(j*self.d_square)
+                    yg.append(i*self.d_square)
             Xg.append(np.array(xg))
-            Yg.append(np.array(Yg))
+            Yg.append(np.array(yg))
             corner_coordinates = (Xg,Yg)
         ########## Code ends here ##########
-        return corner_coordinates
+        return Xg, Yg
 
     def estimateHomography(self, u_meas, v_meas, X, Y):    # Zhang Appendix A
         '''
@@ -142,7 +142,7 @@ class CameraCalibrator:
         V = np.zeros((2*num_mats,6))
         for i in range(num_mats):
             V[2*i,:] = getV(H[i],1,2)
-            V[2*i,:] = (getV(H[i],1,1)-H[i],2,2))
+            V[2*i,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         V_sq = np.matmul(np.transpose(V),V)
         ########## Code ends here ##########
