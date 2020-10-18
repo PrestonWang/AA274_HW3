@@ -71,11 +71,11 @@ class CameraCalibrator:
         HINT: it does not matter where your frame it, as long as you are consistent!
         '''
         ########## Code starts here ##########
-        xg = []
-        yg = []
         Xg = []
         Yg = []
         for h in range(self.n_chessboards):
+            xg = []
+            yg = []
             for i in range(self.n_corners_x):
                 for j in range(self.n_corners_y):
                     xg.append(j*self.d_square)
@@ -135,7 +135,7 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         def getV(H,i,j):
-            v = np.array([H[i,1]*H[j,1],H[i,1]*H[j,2]+H[i,2]*H[j,1],H[i,2]*H[j,2],H[i,3]*H[j,1]+H[i,1]*H[j,3],H[i,2]*H[j,3]+H[i,3]*H[j,2],H[i,3]*H[j,3]])
+            v = np.array([H[i,0]*H[j,0],H[i,0]*H[j,1]+H[i,1]*H[j,0],H[i,1]*H[j,1],H[i,2]*H[j,0]+H[i,0]*H[j,2],H[i,1]*H[j,2]+H[i,2]*H[j,2],H[i,2]*H[j,2]])
             return v
 
         num_mats = len(H)
