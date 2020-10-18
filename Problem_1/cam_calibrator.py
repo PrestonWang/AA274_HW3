@@ -71,7 +71,14 @@ class CameraCalibrator:
         HINT: it does not matter where your frame it, as long as you are consistent!
         '''
         ########## Code starts here ##########
-
+        xg = []
+        yg = []
+        for i in range(self.n_corners_x):
+            for j in range(self.n_corners_y):
+                xg.append(i*self.d_square)
+                yg.append(j*self.d_square)
+                
+        corner_coordinates = (np.array(xg),np.array(yg))
         ########## Code ends here ##########
         return corner_coordinates
 
