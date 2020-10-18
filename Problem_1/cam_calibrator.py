@@ -73,12 +73,16 @@ class CameraCalibrator:
         ########## Code starts here ##########
         xg = []
         yg = []
-        for i in range(self.n_corners_x):
-            for j in range(self.n_corners_y):
-                xg.append(i*self.d_square)
-                yg.append(j*self.d_square)
-                
-        corner_coordinates = (np.array(xg),np.array(yg))
+        Xg = []
+        Yg = []
+        for h in range(self.n_chessboards)
+            for i in range(self.n_corners_x):
+                for j in range(self.n_corners_y):
+                    xg.append(i*self.d_square)
+                    yg.append(j*self.d_square)
+            Xg.append(np.array(xg))
+            Yg.append(np.array(Yg))
+            corner_coordinates = (Xg,Yg)
         ########## Code ends here ##########
         return corner_coordinates
 
@@ -97,7 +101,23 @@ class CameraCalibrator:
         HINT: np.stack and/or np.hstack may come in handy here.
         '''
         ########## Code starts here ##########
-
+        # size of matrix L should be 2*n x 9.
+        n = len(X)
+        # first generate L
+        L = np.zeros((2*n,9))
+        for i in range(n):
+            x = X[i] # getting current x value
+            y = Y[i] # current y value
+            u = u_meas[i]
+            v = v_meas[i]
+            L[2*i,:] = np.array([x,y,1,0,0,0,-u*x, -u*y, -u])
+            L[2*i+1,:] = np.array([0,0,0,x,y,1,-v*x, -v*y, -v])
+        # now perform SVD to get the solution X: sol_X
+            # be careful U_matrix and u_meas are different, V_matrix and v_meas are also different
+            (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
+            # the last column of V will correspond to X since the eigenvalues are sorted in descending order
+        sol_X = V_matrix[:,-1]
+        H = np.vstack((sol_X[0:3], sol_X[3:6], sol_X[6:9]))
         ########## Code ends here ##########
         return H
 
@@ -114,7 +134,17 @@ class CameraCalibrator:
         HINT: What is the size of V?
         '''
         ########## Code starts here ##########
+        def getV(H,i,j):
+            v = np.array([H[i,1]*H[j,1],H[i,1]*H[j,2]+H[i,2]*H[j,1],H[i,2]*H[j,2],H[i,3]*H[j,1]+H[i,1]*H[j,3],H[i,2]*H[j,3]+H[i,3]*H[j,2],H[i,3]*H[j,3]])
+            return v
 
+        num_mats = len(H)
+        V = np.zeros((2*num_mats,6))
+        for i in range(num_mats):
+            V[2*i,:] = getV(H[i],1,2)
+            V[2*i,:] = (getV(H[i],1,1)-H[i],2,2))
+            
+        V_sq = np.matmul(np.transpose(V),V)
         ########## Code ends here ##########
         return A
 
