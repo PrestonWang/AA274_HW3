@@ -146,7 +146,7 @@ class CameraCalibrator:
         V = np.zeros((2*num_mats,6))
         for i in range(num_mats):
             V[2*i,:] = getV(H[i],1,2)
-            V[2*i,:] = (getV(H[i],1,1)-getV(H[i],2,2))
+            V[2*i+1,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
         b = v1[:,-1]
