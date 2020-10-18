@@ -73,16 +73,20 @@ class CameraCalibrator:
         ########## Code starts here ##########
         Xg = []
         Yg = []
+        d_square = self.d_square
+        x_range = np.arange(d_square, d_square * (self.n_corners_x + 1), d_square)
+        y_range = np.arange(d_square * (self.n_corners_y + 1), d_square, -d_square)
         for h in range(self.n_chessboards):
             xg = []
             yg = []
-            for i in range(self.n_corners_x):
-                for j in range(self.n_corners_y):
-                    xg.append(j*self.d_square)
-                    yg.append(i*self.d_square)
+            for j in y_range:
+                for i in x_range:
+                    xg.append(i)
+                    yg.append(j)
             Xg.append(np.array(xg))
             Yg.append(np.array(yg))
-        corner_coordinates = (Xg,Yg)
+
+        corner_coordinates = (Xg, Yg)
         ########## Code ends here ##########
         return corner_coordinates
 
@@ -102,7 +106,7 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         # size of matrix L should be 2*n x 9.
-        n = len(X)
+        n = len(u_meas)
         # first generate L
         L = np.zeros((2*n,9))
         for i in range(n):
@@ -114,7 +118,7 @@ class CameraCalibrator:
             L[2*i+1,:] = np.array([0,0,0,x,y,1,-v*x, -v*y, -v])
         # now perform SVD to get the solution X: sol_X
             # be careful U_matrix and u_meas are different, V_matrix and v_meas are also different
-            (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
+        (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
             # the last column of V will correspond to X since the eigenvalues are sorted in descending order
         sol_X = V_matrix[:,-1]
         H = np.vstack((sol_X[0:3], sol_X[3:6], sol_X[6:9]))
@@ -143,7 +147,7 @@ class CameraCalibrator:
         V = np.zeros((2*num_mats,6))
         for i in range(num_mats):
             V[2*i,:] = getV(H[i],1,2)
-            V[2*i,:] = (getV(H[i],1,1)-getV(H[i],2,2))
+            V[2*i+1,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
         b = v1[:,-1]
