@@ -119,8 +119,8 @@ class CameraCalibrator:
         # now perform SVD to get the solution X: sol_X
             # be careful U_matrix and u_meas are different, V_matrix and v_meas are also different
         (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
-            # the last column of V will correspond to X since the eigenvalues are sorted in descending order
-        sol_X = V_matrix[:,-1]
+            # the last row of V will correspond to X since the eigenvalues are sorted in descending order
+        sol_X = V_matrix[-1,:]
         H = np.vstack((sol_X[0:3], sol_X[3:6], sol_X[6:9]))
         ########## Code ends here ##########
         return H
@@ -140,9 +140,14 @@ class CameraCalibrator:
         ########## Code starts here ##########
         A = np.zeros((3,3))
         def getV(H,a,b):
-	    i = a-1
-	    j = b-1
-            v = np.array([H[0,i]*H[0,j],H[0,i]*H[1,j]+H[1,i]*H[0,j],H[1,i]*H[1,i],H[2,i]*H[0,j]+H[0,i]*H[2,j],H[1,i]*H[2,j]+H[2,i]*H[1,j],H[2,i]*H[2,j]])
+            i = a-1
+            j = b-1
+            Hi = H[:,i]
+            Hi = Hi.reshape((3,1))
+            Hj = H[:,j]
+            Hj = Hj.reshape((1,3))
+            V_mat = np.matmul(Hi,Hj)
+            v = np.array([V_mat[0,0],V_mat[0,1]+V_mat[1,0],V_mat[1,1],V_mat[2,0]+V_mat[0,2],V_mat[2,1]+V_mat[1,2],V_mat[2,2]])
             return v
 
         num_mats = len(H)
@@ -152,11 +157,9 @@ class CameraCalibrator:
             V[2*i+1,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
-        b = v1[:,-1]
-	print(b)
-        v0 = (b[1]*b[3]-b[0]*b[4])/(b[0]*b[2]-b[1]**2)
+        b = v1[-1,:]
+        v0 = (b[1]*b[3]-b[0]*b[4])/(b[0]*b[2]-b[1]*b[1])
         lmda = b[5]-(b[3]**2+v0*(b[1]*b[3]-b[0]*b[4]))/b[0]
-        print(lmda)
         alpha = np.sqrt(lmda/b[0])
         beta = np.sqrt((lmda*b[0])/(b[0]*b[2]-b[1]**2))
         gam =  -1*(b[1]*alpha**2*beta)/lmda
@@ -180,19 +183,25 @@ class CameraCalibrator:
             t: the translation vector
         '''
         ########## Code starts here ##########
-        h1 = H[:,0]
-        h2 = H[:,1]
-        h3 = H[:,2]
+        h1r = H[:,0]
+        h1 = h1r.reshape((3,1))
+        h2r = H[:,1]
+        h2 = h2r.reshape((3,1))
+        h3r = H[:,2]
+        h3 = h3r.reshape((3,1))
         Ainv = np.linalg.inv(A)
         lam = 1/np.linalg.norm(np.matmul(Ainv,h1), ord = 1)
+        lam2 = 1/np.linalg.norm(np.matmul(Ainv,h2), ord = 1)
         r1 = lam * np.matmul(Ainv,h1)
         r2 = lam * np.matmul(Ainv,h2)
-        r3 = r1*r2
+        r3 = np.cross(r1,r2,axis=0)
         t = lam*np.matmul(Ainv,h3)
         Q = np.hstack((r1,r2,r3))
         (U,S,V) = np.linalg.svd(Q, compute_uv=True)
         V_trans = np.transpose(V)
         R = np.matmul(U,V_trans)
+        print R
+        print t
         ########## Code ends here ##########
         return R, t
 
@@ -207,7 +216,7 @@ class CameraCalibrator:
 
         '''
         ########## Code starts here ##########
-        Rt = np.hstack((R, t))
+        Rt = np.hstack((R, t.T))
 
         M_tilda = np.hstack((X, Y, Z, np.full_like(X, 1)))
         m_tilda = np.matmul(Rt, M_tilda)
