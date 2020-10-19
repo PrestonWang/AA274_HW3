@@ -142,7 +142,16 @@ class CameraCalibrator:
         def getV(H,a,b):
 	    i = a-1
 	    j = b-1
-            v = np.array([H[0,i]*H[0,j],H[0,i]*H[1,j]+H[1,i]*H[0,j],H[1,i]*H[1,i],H[2,i]*H[0,j]+H[0,i]*H[2,j],H[1,i]*H[2,j]+H[2,i]*H[1,j],H[2,i]*H[2,j]])
+	    print(H)
+	    Hi = H[:,i]
+	    Hi = Hi.reshape((3,1))
+	    Hj = H[:,j]
+	    Hj = Hj.reshape((1,3))
+	    print(Hi)
+	    print(Hj)
+            V_mat = np.matmul(Hi,Hj)
+	    print(V_mat)
+            v = np.array([V_mat[0,0],V_mat[0,1]+V_mat[1,0],V_mat[1,1],V_mat[2,0]+V_mat[0,2],V_mat[2,1]+V_mat[1,2],V_mat[2,2]])
             return v
 
         num_mats = len(H)
@@ -152,13 +161,9 @@ class CameraCalibrator:
             V[2*i+1,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
-	print(S)
-	print(v1)
         b = v1[-1,:]
-	print(b)
-        v0 = (b[1]*b[3]-b[0]*b[4])/(b[0]*b[2]-b[1]**2)
+        v0 = (b[1]*b[3]-b[0]*b[4])/(b[0]*b[2]-b[1]*b[1])
         lmda = b[5]-(b[3]**2+v0*(b[1]*b[3]-b[0]*b[4]))/b[0]
-        print(lmda)
         alpha = np.sqrt(lmda/b[0])
         beta = np.sqrt((lmda*b[0])/(b[0]*b[2]-b[1]**2))
         gam =  -1*(b[1]*alpha**2*beta)/lmda
@@ -169,6 +174,8 @@ class CameraCalibrator:
         A[1,1] = beta
         A[1,2] = v0
         A[2,2] = 1
+	print b
+	print A
         ########## Code ends here ##########
         return A
 
@@ -192,7 +199,6 @@ class CameraCalibrator:
         r3 = r1*r2
         t = lam*np.matmul(Ainv,h3)
         Q = np.vstack((r1,r2,r3))
-	print(Q)
         (U,S,V) = np.linalg.svd(Q, compute_uv=True)
         V_trans = np.transpose(V)
         R = np.matmul(U,V_trans)
