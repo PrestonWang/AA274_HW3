@@ -119,8 +119,8 @@ class CameraCalibrator:
         # now perform SVD to get the solution X: sol_X
             # be careful U_matrix and u_meas are different, V_matrix and v_meas are also different
         (U_matrix, S, V_matrix) = np.linalg.svd(L, compute_uv=True)
-            # the last column of V will correspond to X since the eigenvalues are sorted in descending order
-        sol_X = V_matrix[:,-1]
+            # the last row of V will correspond to X since the eigenvalues are sorted in descending order
+        sol_X = V_matrix[-1,:]
         H = np.vstack((sol_X[0:3], sol_X[3:6], sol_X[6:9]))
         ########## Code ends here ##########
         return H
@@ -152,7 +152,9 @@ class CameraCalibrator:
             V[2*i+1,:] = (getV(H[i],1,1)-getV(H[i],2,2))
             
         (u1, S, v1) = np.linalg.svd(V, compute_uv=True)
-        b = v1[:,-1]
+	print(S)
+	print(v1)
+        b = v1[-1,:]
 	print(b)
         v0 = (b[1]*b[3]-b[0]*b[4])/(b[0]*b[2]-b[1]**2)
         lmda = b[5]-(b[3]**2+v0*(b[1]*b[3]-b[0]*b[4]))/b[0]
@@ -189,7 +191,8 @@ class CameraCalibrator:
         r2 = lam * np.matmul(Ainv,h2)
         r3 = r1*r2
         t = lam*np.matmul(Ainv,h3)
-        Q = np.hstack((r1,r2,r3))
+        Q = np.vstack((r1,r2,r3))
+	print(Q)
         (U,S,V) = np.linalg.svd(Q, compute_uv=True)
         V_trans = np.transpose(V)
         R = np.matmul(U,V_trans)
