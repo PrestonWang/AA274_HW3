@@ -183,25 +183,20 @@ class CameraCalibrator:
             t: the translation vector
         '''
         ########## Code starts here ##########
-        h1r = H[:,0]
-        h1 = h1r.reshape((3,1))
-        h2r = H[:,1]
-        h2 = h2r.reshape((3,1))
-        h3r = H[:,2]
-        h3 = h3r.reshape((3,1))
+        h1 = H[:,0]
+        h2 = H[:,1]
+        h3 = H[:,2]
         Ainv = np.linalg.inv(A)
-        lam = 1/np.linalg.norm(np.matmul(Ainv,h1), ord = 1)
-        lam2 = 1/np.linalg.norm(np.matmul(Ainv,h2), ord = 1)
-        r1 = lam * np.matmul(Ainv,h1)
-        r2 = lam * np.matmul(Ainv,h2)
-        r3 = np.cross(r1,r2,axis=0)
+        lam = 1/np.linalg.norm(np.matmul(Ainv,h1))
+        r1 = np.linalg.solve(A,h1)
+        r1 = r1/np.linalg.norm(r1)
+        r2 = np.linalg.solve(A,h2)
+        r2 = r2 / np.linalg.norm(r2)
+        r3 = np.cross(r1,r2)
         t = lam*np.matmul(Ainv,h3)
-        Q = np.hstack((r1,r2,r3))
+        Q = np.stack((r1,r2,r3), axis = 1)
         (U,S,V) = np.linalg.svd(Q, compute_uv=True)
-        V_trans = np.transpose(V)
-        R = np.matmul(U,V_trans)
-        print R
-        print t
+        R = np.matmul(U,V)
         ########## Code ends here ##########
         return R, t
 
@@ -216,12 +211,14 @@ class CameraCalibrator:
 
         '''
         ########## Code starts here ##########
-        Rt = np.hstack((R, t.T))
-
-        M_tilda = np.hstack((X, Y, Z, np.full_like(X, 1)))
+        t = t.reshape(3,1)
+        X = X.reshape((:,1))
+        Rt = np.hstack((R, t))
+        Z = np.full_like(X,0)
+        M_tilda = np.vstack((X, Y, Z, np.full_like(X, 1)))
         m_tilda = np.matmul(Rt, M_tilda)
-        x = m_tilda[:, 0]
-        y = m_tilda[:, 1]
+        x = m_tilda[0, :]
+        y = m_tilda[1, :]
         ########## Code ends here ##########
         return x, y
 
@@ -236,12 +233,11 @@ class CameraCalibrator:
             u, v: the coordinates in the ideal pixel image plane
         '''
         ########## Code starts here ##########
-        Rt = np.hstack((R,t))
-
-        M_tilda = np.hstack((X,Y,Z,np.full_like(X,1)))
-        m_tilda = np.matmul(A,np.matmul(Rt, M_tilda))
-        u = m_tilda[:,0]
-        v = m_tilda[:,1]
+        Rt = np.hstack((R, t.reshape(3, 1)))
+        M_tilda = np.vstack((X, Y, Z, np.full_like(X, 1)))
+        m_tilda = np.matmul(A, Rt, M_tilda)
+        u = m_tilda[0,:]
+        v = m_tilda[1,:]
         ########## Code ends here ##########
         return u, v
 
