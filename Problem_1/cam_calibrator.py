@@ -191,7 +191,7 @@ class CameraCalibrator:
         r1 = np.linalg.solve(A,h1)
         r1 = r1/np.linalg.norm(r1)
         r2 = np.linalg.solve(A,h2)
-        r2 = r2 / np.linalg.norm(r2)
+        r2 = lam * r2
         r3 = np.cross(r1,r2)
         t = lam*np.matmul(Ainv,h3)
         Q = np.stack((r1,r2,r3), axis = 1)
@@ -212,9 +212,7 @@ class CameraCalibrator:
         '''
         ########## Code starts here ##########
         t = t.reshape(3,1)
-        X = X.reshape((:,1))
         Rt = np.hstack((R, t))
-        Z = np.full_like(X,0)
         M_tilda = np.vstack((X, Y, Z, np.full_like(X, 1)))
         m_tilda = np.matmul(Rt, M_tilda)
         x = m_tilda[0, :]
